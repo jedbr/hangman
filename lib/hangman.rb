@@ -1,4 +1,5 @@
 require 'colorize'
+require 'pstore'
 
 class Hangman
   def initialize
@@ -92,14 +93,27 @@ class Hangman
     until choice.to_i.between?(1, 3)
       choice = gets.chomp
       case choice
-      when "1" then save_game
-      when "2" then return
-      when "3" then exit
+        when "1" then save_game
+        when "2" then return
+        when "3" then exit
+        else puts "Invalid command (type '1', '2' or '3')"
       end
     end
   end
 
   def save_game
-    puts 'Game saved.'
+    Dir.mkdir('saves') unless File.exists?('saves')
+    print "Filename: "
+    filename = "./saves/#{gets.chomp}"
+    data = PStore.new(filename)
+    data.transaction do
+      data[:phrase] = @phrase
+      data[:guess] = @guess
+      data[:lives] = @lives
+      data[:correct] = @correct
+      data[:incorrect] = @incorrect
+      data.commit
+    end
+    puts "Game saved.\n"
   end
 end
