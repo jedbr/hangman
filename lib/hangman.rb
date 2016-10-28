@@ -10,12 +10,14 @@ class Hangman
       dictionary << current_line.upcase if current_line.size.between?(5, 12)
     end
 
-    @phrase = dictionary.sample
-    @guess = '_' * @phrase.size
-    @lives = @phrase.size
-    @incorrect = []
-    @correct = []
-    @game_won = false
+    unless load_game?
+      @phrase = dictionary.sample
+      @guess = '_' * @phrase.size
+      @lives = @phrase.size
+      @incorrect = []
+      @correct = []
+      @game_won = false
+    end
   end
 
   def play
@@ -89,14 +91,14 @@ class Hangman
     puts '1. Save game'
     puts '2. Back to game'
     puts '3. Quit game'
-    choice = ''
-    until choice.to_i.between?(1, 3)
-      choice = gets.chomp
-      case choice
-        when "1" then save_game
-        when "2" then return
-        when "3" then exit
-        else puts "Invalid command (type '1', '2' or '3')"
+    loop do
+      case gets.chomp
+      when "1"
+        save_game
+        return
+      when "2" then return
+      when "3" then exit
+      else puts "Unknown command (type '1', '2' or '3')"
       end
     end
   end
@@ -115,5 +117,23 @@ class Hangman
       data.commit
     end
     puts "Game saved.\n"
+  end
+
+  def load_game?
+    puts "Welcome to Hangman!\n1. New game\n2. Load game\n3. Quit"
+    loop do
+      case gets.chomp
+      when "1" then return false
+      when "2"
+        load_game
+        return true
+      when "3" then exit
+      else puts "Unknown command (type '1', '2' or '3')"
+      end
+    end
+  end
+
+  def load_game
+
   end
 end
