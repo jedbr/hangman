@@ -3,15 +3,32 @@ require 'pstore'
 
 class Hangman
   def initialize
-    dictionary = []
+    @dictionary = []
 
     File.foreach('5desk.txt') do |line|
       current_line = line.chomp
-      dictionary << current_line.upcase if current_line.size.between?(5, 12)
+      @dictionary << current_line.upcase if current_line.size.between?(5, 12)
     end
+  end
 
+  def play
+    loop do
+      setup && system("clear")
+      until @game_won == true || @lives == 0
+        print_status
+        make_guess
+        update_status
+      end
+      finish_game
+      gets && system("clear")
+    end
+  end
+
+  private
+
+  def setup
     unless load_game?
-      @phrase = dictionary.sample
+      @phrase = @dictionary.sample
       @guess = '_' * @phrase.size
       @lives = @phrase.size
       @incorrect = []
@@ -20,27 +37,22 @@ class Hangman
     end
   end
 
-  def play
-    until @game_won == true || @lives == 0
-      print_status
-      make_guess
-      update_status
+  def print_status(final = false)
+    system('clear')
+    print_lives
+    puts @guess.scan(/./).join(' ').center(50), "\n"
+    unless final
+      print 'Correct: '
+      puts @correct.join(', ')
+      print 'Incorrect: '
+      puts @incorrect.join(', '), "\n"
     end
-    finish_game
   end
 
-  private
-
-  def print_status
-    system('clear')
+  def print_lives
     lives_to_print = '💖 '.red * @lives
     puts lives_to_print.ljust(@lives * 16 +
          (@phrase.size - @lives) * 2, '💖 '), "\n"
-    puts @guess.scan(/./).join(' ').center(50), "\n"
-    print 'Correct: '
-    puts @correct.join(', ')
-    print 'Incorrect: '
-    puts @incorrect.join(', '), "\n"
   end
 
   def make_guess
@@ -77,11 +89,11 @@ class Hangman
   end
 
   def finish_game
+    print_status(true)
     if @game_won
-      puts "\n", "#{@guess}\n", 'Congratulations, you have won!'
+      puts "\nCongratulations, you have won!"
     else
-      puts "\n", 'You lose!'
-      puts "Correct phrase: #{@phrase}"
+      puts "\n#{@phrase}\nYou lose!"
     end
   end
 
