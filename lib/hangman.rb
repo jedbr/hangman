@@ -59,7 +59,7 @@ class Hangman
     loop do
       puts "What's your next guess? (type 'menu' to open menu)"
       @letter = gets.chomp.upcase
-      if @letter.size == 1
+      if @letter.match(/^[[:alpha:]]$/)
         if (@correct | @incorrect).include?(@letter)
           puts "Already checked! Try again.", "\n"
         else
@@ -100,9 +100,7 @@ class Hangman
   def game_menu
     print_status
     puts 'Game menu'
-    puts '1. Save game'
-    puts '2. Back to game'
-    puts '3. Quit game'
+    puts "1. Save game\n2. Back to game\n3. Quit game"
     loop do
       case gets.chomp
       when "1"
@@ -116,7 +114,7 @@ class Hangman
   end
 
   def save_game
-    Dir.mkdir('saves') unless File.exists?('saves')
+    Dir.mkdir('saves') unless File.exist?('saves')
     print "Filename: "
     filename = "./saves/#{gets.chomp}"
     data = PStore.new(filename)
@@ -132,13 +130,13 @@ class Hangman
   end
 
   def load_game?
+    system("clear")
     puts "Welcome to Hangman!\n1. New game\n2. Load game\n3. Quit"
     loop do
       case gets.chomp
       when "1" then return false
       when "2"
-        load_game
-        return true
+        return load_game
       when "3" then exit
       else puts "Unknown command (type '1', '2' or '3')"
       end
@@ -146,6 +144,30 @@ class Hangman
   end
 
   def load_game
+    filename = filename_to_load
+    unless filename.upcase == "SAVES/NEW"
+      data = PStore.new(filename)
+      data.transaction do
+        @phrase = data[:phrase]
+        @guess = data[:guess]
+        @lives = data[:lives]
+        @correct = data[:correct]
+        @incorrect = data[:incorrect]
+      end
+      return true
+    else
+      return false
+    end
+  end
 
+  def filename_to_load
+    while true
+      filename = "saves/"
+      print "\nFile to load: "
+      filename += gets.chomp
+      break if File.exist?(filename) || filename.upcase == "SAVES/NEW"
+      puts "File does not exist. Try again. (type 'new' to start new game)"
+    end
+    filename
   end
 end
